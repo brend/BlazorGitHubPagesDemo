@@ -28,7 +28,7 @@
 <!-- Provide a button to add the variable to the expression -->
 <button type="button" class="btn btn-primary" @onclick="AddVariable">Add variable</button>
 
-<!-- Display the variables that have been added to the expression -->
+<!-- Display the variables that have been added to the expression, each with a button to remove it -->
 <h3>Variables in expression</h3>
 <ul>
     @foreach (var variable in Variables)
@@ -50,6 +50,12 @@
     <input type="text" class="form-control @(ErrorOccurred ? "fail" : string.Empty)" id="result" @bind="Result" readonly />
 </div>
 
+<!-- Display the parsed expression -->
+<div class="form-group">
+    <label for="parsedExpression">Parsed expression:</label>
+    <input type="text" class="form-control" id="parsedExpression" value="@ParsedExpression" readonly />
+</div>
+
 @code {
     private string Expression { get; set; } = "";
     private string Result { get; set; } = "";
@@ -57,6 +63,7 @@
     private string VariableValue { get; set; } = "";
     private Dictionary<string, double> Variables { get; set; } = new Dictionary<string, double>();
     private bool ErrorOccurred { get; set; } = false;
+    private Exp.Expression? ParsedExpression { get; set; }
 
     protected override void OnInitialized()
     {
@@ -82,7 +89,10 @@
 
         try
         {
-            Result = new Evaluator(Expression).Evaluate(valuation).ToString();
+            var evaluator = new Evaluator(Expression);
+
+            Result = evaluator.Evaluate(valuation).ToString();
+            ParsedExpression = evaluator.Expression;
         }
         catch (Exception ex)
         {
