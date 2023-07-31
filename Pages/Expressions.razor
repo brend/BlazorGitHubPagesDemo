@@ -1,0 +1,93 @@
+@page "/expressions"
+
+<PageTitle>Expressions</PageTitle>
+
+<h1>Expressions</h1>
+
+<!-- Provide a text input for the user to enter an arithmetic expression, then use the Evaluator class to evaluate the expression -->
+<div class="form-group">
+    <label for="expression">Enter an arithmetic expression:</label>
+    <input type="text" class="form-control" id="expression" @bind="Expression" />
+</div>
+
+<!-- Allow the user to add variables to the expression -->
+<h2>Variables</h2>
+
+<!-- Provide a text input for the user to enter a variable name -->
+<div class="form-group">
+    <label for="variableName">Variable name:</label>
+    <input type="text" class="form-control" id="variableName" @bind="VariableName" />
+</div>
+
+<!-- Provide a text input for the user to enter a variable value -->
+<div class="form-group">
+    <label for="variableValue">Variable value:</label>
+    <input type="text" class="form-control" id="variableValue" @bind="VariableValue" />
+</div>
+
+<!-- Provide a button to add the variable to the expression -->
+<button type="button" class="btn btn-primary" @onclick="AddVariable">Add variable</button>
+
+<!-- Display the variables that have been added to the expression -->
+<h3>Variables in expression</h3>
+<ul>
+    @foreach (var variable in Variables)
+    {
+        <li>@variable.Key = @variable.Value</li>
+    }
+    @if (Variables.Count == 0)
+    {
+        <li>None</li>
+    }
+</ul>
+
+<!-- Provide a button to evaluate the expression -->
+<button type="button" class="btn btn-primary" @onclick="EvaluateExpression">Evaluate</button>
+
+<!-- Display the result of the expression -->
+<div class="form-group">
+    <label for="result">Result:</label>
+    <input type="text" class="form-control @(ErrorOccurred ? "fail" : string.Empty)" id="result" @bind="Result" readonly />
+</div>
+
+@code {
+    private string Expression { get; set; } = "";
+    private string Result { get; set; } = "";
+    private string VariableName { get; set; } = "";
+    private string VariableValue { get; set; } = "";
+    private Dictionary<string, double> Variables { get; set; } = new Dictionary<string, double>();
+    private bool ErrorOccurred { get; set; } = false;
+
+    protected override void OnInitialized()
+    {
+        Expression = "2 + 2";
+        EvaluateExpression();
+    }
+
+    private void AddVariable()
+    {
+        Variables.Add(VariableName, double.Parse(VariableValue));
+        VariableName = "";
+        VariableValue = "";
+    }
+
+    private void EvaluateExpression()
+    {
+        var valuation = Valuation.Math();
+
+        foreach (var variable in Variables)
+            valuation[variable.Key] = variable.Value;
+
+        ErrorOccurred = false;
+
+        try
+        {
+            Result = new Evaluator(Expression).Evaluate(valuation).ToString();
+        }
+        catch (Exception ex)
+        {
+            Result = "Invalid expression: " + ex.Message;
+            ErrorOccurred = true;
+        }
+    }
+}
